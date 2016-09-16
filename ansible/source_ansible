@@ -1,0 +1,3 @@
+# source ansible developer release
+source /opt/ansible/hacking/env-setup
+

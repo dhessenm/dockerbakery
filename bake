@@ -1,0 +1,82 @@
+#!/bin/bash
+# author: Dirk Hessenmueller
+
+# Variables
+# --------------------------------------------------------------------
+basedir=$(dirname $0)
+echo "Debug: basedir -> $basedir"
+
+docker_registry_base=dockerhub.noncd.rz.db.de/dirkhessenmueller
+# docker_registry_base=dockerhub.noncd.rz.db.de/zst
+
+http_proxy=http://zst-100v.linux.rz.db.de:8888
+no_proxy=localhost,127.0.0.1,.db.de
+
+# docker_image_version=2.1.1.0
+
+
+# Some functions
+# --------------------------------------------------------------------
+usage(){
+echo "Usage: $0 <dockerimage>"
+}
+
+
+command_exists() {
+        command -v "$@" > /dev/null 2>&1
+}
+
+
+# --------------------------------------------------------------------
+
+# check params
+if [ -z "$1" ]; then
+   usage
+   exit 1
+fi
+
+docker_image=$1
+
+
+# check if docker is installed
+if ! command_exists docker; then
+   echo "Error: docker command not found."
+   exit 1
+fi
+
+cd ${basedir}/${docker_image}
+
+echo "Debug: `pwd`"
+
+
+echo "Build Docker image $docker_image ..."
+docker build --build-arg http_proxy=${http_proxy} \
+             --build-arg https_proxy=${http_proxy} \
+             --build-arg HTTP_PROXY=${http_proxy} \
+             --build-arg HTTPS_PROXY=${http_proxy} \
+             --build-arg no_proxy=${no_proxy} \
+             --build-arg NO_PROXY=${no_proxy} \
+             -t ${docker_registry_base}/${docker_image} .
+
+cd -
+
+sleep 5
+
+echo "Test Docker image $docker_image ..."
+# /bin/bash ${basedir}/${docker_image}/test/test
+
+
+echo "Tag Docker image $docker_image ..."
+# docker tag ${docker_registry_base}/${docker_image} ${docker_registry_base}/${docker_image}:${docker_image_version}
+# docker tag ${docker_registry_base}/${docker_image} ${docker_registry_base}/${docker_image}:stable
+docker tag ${docker_registry_base}/${docker_image} ${docker_registry_base}/${docker_image}:devel
+
+echo "-----------------------------------------------------------------"
+echo ""
+echo "docker login dockerhub.noncd.rz.db.de"
+echo ""
+
+echo "Push Docker image $docker_image to Docker registry ..."
+echo "docker push ${docker_registry_base}/${docker_image}"
+# docker push ${docker_registry_base}/${docker_image}
+

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+docker_image=ansible
+
+# to do:
+# clean old docker container ansible_test ...
+
+
+
+docker stop ${docker_image}_test > /dev/null 2>&1
+docker rm ${docker_image}_test > /dev/null 2>&1
+
+docker run -d -p 2222:22 --name ${docker_image}_test dockerhub.noncd.rz.db.de/dirkhessenmueller/ansible:devel
+
+if [[ `echo $?` != 0 ]]; then
+  "echo: Error, Someting went wrong whith container start"
+  exit 1
+else
+  echo "Login into container with ssh: ssh -p 2222 -l ansible localhost"
+  echo "Check ansible version with ansible --version"
+fi
+
+exit 0
+
+
+
+
+
+
