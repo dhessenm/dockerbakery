@@ -9,6 +9,7 @@ RUN apt-get -y update && \
 RUN pip install awscli && \
     pip install boto pyyaml pytz jinja2
 
+RUN pip install six --upgrade
 RUN pip install shade
 
 # sshd
@@ -20,10 +21,14 @@ RUN groupadd -g 1001 ansible && \
     useradd -u 1001 -g 1001 -s /bin/bash -c "ansible user" -d /app/ansible -m ansible && \
     echo "ansible:ansible" | chpasswd
 
+# create itfdocker user
+RUN groupadd -g 3334 itfdocker && \
+    useradd -u 3334 -g 3334 -s /bin/bash -c "itfdocker user" -d /app/itfdocker -m itfdocker
+
 # setup ssh directory
 RUN mkdir /app/ansible/.ssh && \
     chown ansible:ansible /app/ansible/.ssh && \
-    chmod 700 /app/ansible/.ssh
+    chmod 700 /app/ansible/.ssh 
 
 ADD ansible.cfg /app/ansible/.ansible.cfg
 ADD hosts /app/ansible/hosts
@@ -60,7 +65,8 @@ RUN echo "http_proxy=http_proxy://zst-100v.linux.rz.db.de:8888" >> /etc/environm
     echo "HTTP_PROXY=http_proxy://zst-100v.linux.rz.db.de:8888" >> /etc/environment && \
     echo "HTTPS_PROXY=http_proxy://zst-100v.linux.rz.db.de:8888" >> /etc/environment && \
     echo "no_proxy=localhost,127.0.0.1,.db.de" >> /etc/environment && \
-    echo "NO_PROXY=localhost,127.0.0.1,.db.de" >> /etc/environment
+    echo "NO_PROXY=localhost,127.0.0.1,.db.de" >> /etc/environment && \
+    mkdir /opt/provisioning
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
